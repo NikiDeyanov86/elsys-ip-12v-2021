@@ -16,9 +16,6 @@ import java.util.stream.Collectors;
 
 public class CalculatorServer {
     private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
 
     public void start(int port) throws IOException {
         serverSocket = new ServerSocket(port);
