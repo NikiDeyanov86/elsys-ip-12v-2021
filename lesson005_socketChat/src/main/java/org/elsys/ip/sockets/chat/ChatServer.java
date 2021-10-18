@@ -6,23 +6,33 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ChatServer {
     private ServerSocket serverSocket;
+    private List<CalculatorClientHandler> clients = new ArrayList<>();
 
     public void start(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        while (true)
-            new CalculatorClientHandler(serverSocket.accept()).start();
+        while (true) {
+            CalculatorClientHandler client = new CalculatorClientHandler(serverSocket.accept(), this);
+            clients.add(client);
+            client.start();
+        }
     }
 
     private static class CalculatorClientHandler extends Thread {
-        private Socket clientSocket;
+        private final Socket clientSocket;
         private PrintWriter out;
         private BufferedReader in;
+        private final ChatServer server;
 
-        public CalculatorClientHandler(Socket socket) {
+        public CalculatorClientHandler(Socket socket, ChatServer server) {
             this.clientSocket = socket;
+            this.server = server;
         }
 
         public void run() {
@@ -32,7 +42,10 @@ public class ChatServer {
 
                 while (true) {
                     String line = in.readLine();
-                    out.println(line);
+                    if (line == null) {
+                        break;
+                    }
+                    server.printlnAll(line);
                 }
             } catch (Throwable t) {
                 System.out.println(t.getMessage());
@@ -46,8 +59,24 @@ public class ChatServer {
                 if (clientSocket != null) clientSocket.close();
                 if (in != null) in.close();
                 if (out != null) out.close();
+                server.removeClient(this);
             } catch (Throwable t) {
+                t.printStackTrace();
             }
+        }
+
+        public void println(String line) {
+            out.println(line);
+        }
+    }
+
+    private void removeClient(CalculatorClientHandler client) {
+        clients.remove(client);
+    }
+
+    private void printlnAll(String line) {
+        for (CalculatorClientHandler client : clients) {
+            client.println(line);
         }
     }
 
