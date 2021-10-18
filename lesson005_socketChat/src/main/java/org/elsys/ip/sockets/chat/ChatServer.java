@@ -6,21 +6,17 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ChatServer {
     private ServerSocket serverSocket;
-    private List<CalculatorClientHandler> clients = new ArrayList<>();
+    private Map<String, CalculatorClientHandler> clients = new HashMap<>();
 
     public void start(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         while (true) {
-            CalculatorClientHandler client = new CalculatorClientHandler(serverSocket.accept(), this);
-            clients.add(client);
-            client.start();
+            new CalculatorClientHandler(serverSocket.accept(), this).start();
         }
     }
 
@@ -29,6 +25,7 @@ public class ChatServer {
         private PrintWriter out;
         private BufferedReader in;
         private final ChatServer server;
+        private String name;
 
         public CalculatorClientHandler(Socket socket, ChatServer server) {
             this.clientSocket = socket;
@@ -40,12 +37,16 @@ public class ChatServer {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
+                name = in.readLine().replace(" ", "_");
+                server.addClient(this, name);
+
                 while (true) {
                     String line = in.readLine();
                     if (line == null) {
                         break;
                     }
-                    server.printlnAll(line);
+
+                    server.printlnAll(name, line);
                 }
             } catch (Throwable t) {
                 System.out.println(t.getMessage());
@@ -59,7 +60,7 @@ public class ChatServer {
                 if (clientSocket != null) clientSocket.close();
                 if (in != null) in.close();
                 if (out != null) out.close();
-                server.removeClient(this);
+                server.removeClient(name);
             } catch (Throwable t) {
                 t.printStackTrace();
             }
@@ -70,13 +71,28 @@ public class ChatServer {
         }
     }
 
-    private void removeClient(CalculatorClientHandler client) {
-        clients.remove(client);
+    private void removeClient(String name) {
+        clients.remove(name);
     }
 
-    private void printlnAll(String line) {
-        for (CalculatorClientHandler client : clients) {
-            client.println(line);
+    private void addClient(CalculatorClientHandler client, String name) {
+        clients.put(name, client);
+    }
+
+    private void printlnAll(String name, String line) {
+        if (line.startsWith("dm ")) {
+            String[] lineSplit = line.split(" ");
+            String dmTo = lineSplit[1];
+            String dmMessage = line.substring(3 + dmTo.length() + 1);
+            if (clients.containsKey(dmTo)) {
+                clients.get(dmTo).println(name + " (dm) > " + dmMessage);
+            } else {
+                clients.get(name).println("Invalid DM receiver.");
+            }
+        } else {
+            for (CalculatorClientHandler client : clients.values()) {
+                client.println(name + " > " + line);
+            }
         }
     }
 
