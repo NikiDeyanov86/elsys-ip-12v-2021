@@ -13,4 +13,35 @@
         <maven.compiler.target>16</maven.compiler.target>
     </properties>
 
+    <build>
+        <plugins>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-jar-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <archive>-->
+<!--                        <manifest>-->
+<!--                            <addClasspath>true</addClasspath>-->
+<!--                            <mainClass>org.elsys.ip.sockets.chat.ChatClient</mainClass>-->
+<!--                        </manifest>-->
+<!--                    </archive>-->
+<!--                    <finalName>client</finalName>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>org.elsys.ip.sockets.chat.ChatServer</mainClass>
+                        </manifest>
+                    </archive>
+                    <finalName>server</finalName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
