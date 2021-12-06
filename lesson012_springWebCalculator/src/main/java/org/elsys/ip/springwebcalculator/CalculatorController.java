@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -18,21 +20,31 @@ public class CalculatorController {
     @GetMapping("/calculator")
     public String form(Model model) {
         model.addAttribute("input", new CalculatorInput());
-        model.addAttribute("result", null);
+        model.addAttribute("commands", getCommands());
         return "form";
     }
 
     @PostMapping("/calculator")
     public String result(@ModelAttribute CalculatorInput input, Model model) {
-        String[] lineSplit = input.getCommand().split(" ");
+        String[] lineSplit = input.getArgs().split(" ");
         String result = calculatorCore.execute(
-                lineSplit[0],
-                Arrays.stream(lineSplit).skip(1).collect(Collectors.toList())
+                input.getCommand(),
+                Arrays.stream(lineSplit).toList()
         );
 
+        input.getResult().add(result);
+
         model.addAttribute("input", input);
-        model.addAttribute("result", result);
+        model.addAttribute("commands", getCommands());
         return "form";
     }
 
+
+    private Map<String, String> getCommands() {
+        var map = new HashMap<String, String>();
+        map.put("add", "Addition");
+        map.put("sub", "Substitution");
+        map.put("mem", "Memory");
+        return map;
+    }
 }
