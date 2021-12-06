@@ -13,7 +13,7 @@
     </select>
     <p>Command: <input type="text" th:field="*{args}"/></p>
 
-    <input type="hidden" th:each="resultItem, itemStat : *{result}" th:value="*{result[__${itemStat.index}__]}">
+    <input type="hidden" th:field="*{result}">
 
     <p><input type="submit" value="Submit"/> <input type="reset" value="Reset"/></p>
 </form>
